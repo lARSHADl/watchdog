@@ -95,7 +95,7 @@ def echo(fn, write=sys.stdout.write):
     code = fn.__code__
     argcount = code.co_argcount
     argnames = code.co_varnames[:argcount]
-    fn_defaults = fn.__defaults__ or list()
+    fn_defaults = fn.__defaults__ or []
     argdefs = dict(list(zip(argnames[-len(fn_defaults):], fn_defaults)))
 
     @functools.wraps(fn)

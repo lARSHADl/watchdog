@@ -191,14 +191,14 @@ class Inotify(object):
         self._lock = threading.Lock()
 
         # Stores the watch descriptor for a given path.
-        self._wd_for_path = dict()
-        self._path_for_wd = dict()
+        self._wd_for_path = {}
+        self._path_for_wd = {}
 
         self._path = path
         self._event_mask = event_mask
         self._is_recursive = recursive
         self._add_dir_watch(path, recursive, event_mask)
-        self._moved_from_events = dict()
+        self._moved_from_events = {}
 
     @property
     def event_mask(self):
@@ -222,7 +222,7 @@ class Inotify(object):
 
     def clear_move_records(self):
         """Clear cached records of MOVED_FROM events"""
-        self._moved_from_events = dict()
+        self._moved_from_events = {}
 
     def source_for_move(self, destination_event):
         """

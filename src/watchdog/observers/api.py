@@ -206,9 +206,9 @@ class BaseObserver(EventDispatcher):
         self._emitter_class = emitter_class
         self._lock = threading.RLock()
         self._watches = set()
-        self._handlers = dict()
+        self._handlers = {}
         self._emitters = set()
-        self._emitter_for_watch = dict()
+        self._emitter_for_watch = {}
 
     def _add_emitter(self, emitter):
         self._emitter_for_watch[emitter.watch] = emitter
