@@ -162,13 +162,13 @@ class KeventDescriptorSet(object):
         self._descriptors = set()
 
         # Descriptor for a given path.
-        self._descriptor_for_path = dict()
+        self._descriptor_for_path = {}
 
         # Descriptor for a given fd.
-        self._descriptor_for_fd = dict()
+        self._descriptor_for_fd = {}
 
         # List of kevent objects.
-        self._kevents = list()
+        self._kevents = []
 
         self._lock = threading.Lock()
 
