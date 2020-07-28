@@ -399,7 +399,7 @@ def test_renaming_top_level_directory():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirModifiedEvent)) for e in events])
+    assert all(isinstance(e, (FileCreatedEvent, FileMovedEvent, DirModifiedEvent)) for e in events)
 
     for event in events:
         if isinstance(event, FileCreatedEvent):
@@ -448,7 +448,7 @@ def test_renaming_top_level_directory_on_windows():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirMovedEvent, DirModifiedEvent)) for e in events])
+    assert all(isinstance(e, (FileCreatedEvent, FileMovedEvent, DirMovedEvent, DirModifiedEvent)) for e in events)
 
     for event in events:
         if isinstance(event, FileCreatedEvent):
@@ -540,7 +540,7 @@ def test_move_nested_subdirectories_on_windows():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileModifiedEvent, DirModifiedEvent)) for e in events])
+    assert all(isinstance(e, (FileModifiedEvent, DirModifiedEvent)) for e in events)
 
     for event in events:
         if isinstance(event, FileModifiedEvent):
