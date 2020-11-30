@@ -46,8 +46,10 @@ def test_move_from(p):
     inotify = InotifyBuffer(p('dir1').encode())
     mv(p('dir1', 'a'), p('dir2', 'b'))
     event = wait_for_move_event(inotify.read_event)
-    assert event.is_moved_from
-    assert event.src_path == p('dir1', 'a').encode()
+    if not event.is_moved_from:
+        raise AssertionError
+    if event.src_path != p('dir1', 'a').encode():
+        raise AssertionError
     inotify.close()
 
 
@@ -60,8 +62,10 @@ def test_move_to(p):
     inotify = InotifyBuffer(p('dir2').encode())
     mv(p('dir1', 'a'), p('dir2', 'b'))
     event = wait_for_move_event(inotify.read_event)
-    assert event.is_moved_to
-    assert event.src_path == p('dir2', 'b').encode()
+    if not event.is_moved_to:
+        raise AssertionError
+    if event.src_path != p('dir2', 'b').encode():
+        raise AssertionError
     inotify.close()
 
 
@@ -74,8 +78,10 @@ def test_move_internal(p):
     inotify = InotifyBuffer(p('').encode(), recursive=True)
     mv(p('dir1', 'a'), p('dir2', 'b'))
     frm, to = wait_for_move_event(inotify.read_event)
-    assert frm.src_path == p('dir1', 'a').encode()
-    assert to.src_path == p('dir2', 'b').encode()
+    if frm.src_path != p('dir1', 'a').encode():
+        raise AssertionError
+    if to.src_path != p('dir2', 'b').encode():
+        raise AssertionError
     inotify.close()
 
 
@@ -98,9 +104,12 @@ def test_move_internal_batch(p):
     i = 0
     while i < n:
         frm, to = wait_for_move_event(inotify.read_event)
-        assert os.path.dirname(frm.src_path).endswith(b'/dir1')
-        assert os.path.dirname(to.src_path).endswith(b'/dir2')
-        assert frm.name == to.name
+        if not os.path.dirname(frm.src_path).endswith(b'/dir1'):
+            raise AssertionError
+        if not os.path.dirname(to.src_path).endswith(b'/dir2'):
+            raise AssertionError
+        if frm.name != to.name:
+            raise AssertionError
         i += 1
     inotify.close()
 
@@ -120,6 +129,8 @@ def test_delete_watched_directory(p):
 
 def test_close_should_terminate_thread(p):
     inotify = InotifyBuffer(p('').encode(), recursive=True)
-    assert inotify.is_alive()
+    if not inotify.is_alive():
+        raise AssertionError
     inotify.close()
-    assert not inotify.is_alive()
+    if inotify.is_alive():
+        raise AssertionError

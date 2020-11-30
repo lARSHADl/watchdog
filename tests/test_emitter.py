@@ -67,7 +67,8 @@ def setup_teardown(tmpdir):
 
     emitter.stop()
     emitter.join(5)
-    assert not emitter.is_alive()
+    if emitter.is_alive():
+        raise AssertionError
 
 
 def start_watching(path=None, use_full_emitter=False, recursive=True):
@@ -96,13 +97,17 @@ def test_create():
     open(p('a'), 'a').close()
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('a')
-    assert isinstance(event, FileCreatedEvent)
+    if event.src_path != p('a'):
+        raise AssertionError
+    if not isinstance(event, FileCreatedEvent):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert os.path.normpath(event.src_path) == os.path.normpath(p(''))
-        assert isinstance(event, DirModifiedEvent)
+        if os.path.normpath(event.src_path) != os.path.normpath(p('')):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -112,13 +117,17 @@ def test_delete():
     rm(p('a'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('a')
-    assert isinstance(event, FileDeletedEvent)
+    if event.src_path != p('a'):
+        raise AssertionError
+    if not isinstance(event, FileDeletedEvent):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert os.path.normpath(event.src_path) == os.path.normpath(p(''))
-        assert isinstance(event, DirModifiedEvent)
+        if os.path.normpath(event.src_path) != os.path.normpath(p('')):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -128,8 +137,10 @@ def test_modify():
     touch(p('a'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('a')
-    assert isinstance(event, FileModifiedEvent)
+    if event.src_path != p('a'):
+        raise AssertionError
+    if not isinstance(event, FileModifiedEvent):
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -142,25 +153,36 @@ def test_move():
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir1', 'a')
-        assert event.dest_path == p('dir2', 'b')
-        assert isinstance(event, FileMovedEvent)
+        if event.src_path != p('dir1', 'a'):
+            raise AssertionError
+        if event.dest_path != p('dir2', 'b'):
+            raise AssertionError
+        if not isinstance(event, FileMovedEvent):
+            raise AssertionError
     else:
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir1', 'a')
-        assert isinstance(event, FileDeletedEvent)
+        if event.src_path != p('dir1', 'a'):
+            raise AssertionError
+        if not isinstance(event, FileDeletedEvent):
+            raise AssertionError
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir2', 'b')
-        assert isinstance(event, FileCreatedEvent)
+        if event.src_path != p('dir2', 'b'):
+            raise AssertionError
+        if not isinstance(event, FileCreatedEvent):
+            raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path in [p('dir1'), p('dir2')]
-    assert isinstance(event, DirModifiedEvent)
+    if event.src_path not in [p('dir1'), p('dir2')]:
+        raise AssertionError
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path in [p('dir1'), p('dir2')]
-        assert isinstance(event, DirModifiedEvent)
+        if event.src_path not in [p('dir1'), p('dir2')]:
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -172,13 +194,17 @@ def test_move_to():
     mv(p('dir1', 'a'), p('dir2', 'b'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir2', 'b')
-    assert isinstance(event, FileCreatedEvent)
+    if event.src_path != p('dir2', 'b'):
+        raise AssertionError
+    if not isinstance(event, FileCreatedEvent):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir2')
-        assert isinstance(event, DirModifiedEvent)
+        if event.src_path != p('dir2'):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
 
 @pytest.mark.skipif(not platform.is_linux(), reason="InotifyFullEmitter only supported in Linux")
@@ -190,9 +216,12 @@ def test_move_to_full():
     mv(p('dir1', 'a'), p('dir2', 'b'))
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, FileMovedEvent)
-    assert event.dest_path == p('dir2', 'b')
-    assert event.src_path is None  # Should equal None since the path was not watched
+    if not isinstance(event, FileMovedEvent):
+        raise AssertionError
+    if event.dest_path != p('dir2', 'b'):
+        raise AssertionError
+    if event.src_path is not None:
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -204,13 +233,17 @@ def test_move_from():
     mv(p('dir1', 'a'), p('dir2', 'b'))
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, FileDeletedEvent)
-    assert event.src_path == p('dir1', 'a')
+    if not isinstance(event, FileDeletedEvent):
+        raise AssertionError
+    if event.src_path != p('dir1', 'a'):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir1')
-        assert isinstance(event, DirModifiedEvent)
+        if event.src_path != p('dir1'):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
 
 @pytest.mark.skipif(not platform.is_linux(), reason="InotifyFullEmitter only supported in Linux")
@@ -222,9 +255,12 @@ def test_move_from_full():
     mv(p('dir1', 'a'), p('dir2', 'b'))
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, FileMovedEvent)
-    assert event.src_path == p('dir1', 'a')
-    assert event.dest_path is None  # Should equal None since path not watched
+    if not isinstance(event, FileMovedEvent):
+        raise AssertionError
+    if event.src_path != p('dir1', 'a'):
+        raise AssertionError
+    if event.dest_path is not None:
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -252,8 +288,10 @@ def test_separate_consecutive_moves():
 
     def _step(expected_step):
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == expected_step[1]
-        assert isinstance(event, expected_step[0])
+        if event.src_path != expected_step[1]:
+            raise AssertionError
+        if not isinstance(event, expected_step[0]):
+            raise AssertionError
 
     for expected_step in expected:
         _step(expected_step)
@@ -267,8 +305,10 @@ def test_delete_self():
 
     if platform.is_darwin():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir1')
-        assert isinstance(event, FileDeletedEvent)
+        if event.src_path != p('dir1'):
+            raise AssertionError
+        if not isinstance(event, FileDeletedEvent):
+            raise AssertionError
 
 
 @pytest.mark.skipif(platform.is_windows() or platform.is_bsd(),
@@ -293,12 +333,16 @@ def test_fast_subdirectory_creation_deletion():
         logger.debug(event)
         etype = type(event)
         count[etype] += 1
-        assert event.src_path == etype_for_dir[etype]
-        assert count[DirCreatedEvent] >= count[DirDeletedEvent]
-        assert count[DirCreatedEvent] + count[DirDeletedEvent] >= count[DirModifiedEvent]
-    assert count == {DirCreatedEvent: times,
+        if event.src_path != etype_for_dir[etype]:
+            raise AssertionError
+        if count[DirCreatedEvent] < count[DirDeletedEvent]:
+            raise AssertionError
+        if count[DirCreatedEvent] + count[DirDeletedEvent] < count[DirModifiedEvent]:
+            raise AssertionError
+    if count != {DirCreatedEvent: times,
                      DirModifiedEvent: times * 2,
-                     DirDeletedEvent: times}
+                     DirDeletedEvent: times}:
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -306,7 +350,8 @@ def test_passing_unicode_should_give_unicode():
     start_watching(str_cls(p("")))
     touch(p('a'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event.src_path, str_cls)
+    if not isinstance(event.src_path, str_cls):
+        raise AssertionError
 
 
 @pytest.mark.skipif(platform.is_windows(),
@@ -316,7 +361,8 @@ def test_passing_bytes_should_give_bytes():
     start_watching(p('').encode())
     touch(p('a'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event.src_path, bytes)
+    if not isinstance(event.src_path, bytes):
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -326,18 +372,24 @@ def test_recursive_on():
     touch(p('dir1', 'dir2', 'dir3', 'a'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1', 'dir2', 'dir3', 'a')
-    assert isinstance(event, FileCreatedEvent)
+    if event.src_path != p('dir1', 'dir2', 'dir3', 'a'):
+        raise AssertionError
+    if not isinstance(event, FileCreatedEvent):
+        raise AssertionError
 
     if not platform.is_windows():
         event = event_queue.get(timeout=5)[0]
-        assert event.src_path == p('dir1', 'dir2', 'dir3')
-        assert isinstance(event, DirModifiedEvent)
+        if event.src_path != p('dir1', 'dir2', 'dir3'):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
         if not platform.is_bsd():
             event = event_queue.get(timeout=5)[0]
-            assert event.src_path == p('dir1', 'dir2', 'dir3', 'a')
-            assert isinstance(event, FileModifiedEvent)
+            if event.src_path != p('dir1', 'dir2', 'dir3', 'a'):
+                raise AssertionError
+            if not isinstance(event, FileModifiedEvent):
+                raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -357,38 +409,55 @@ def test_renaming_top_level_directory():
 
     mkdir(p('a'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirCreatedEvent)
-    assert event.src_path == p('a')
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
+    if event.src_path != p('a'):
+        raise AssertionError
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirModifiedEvent)
-    assert event.src_path == p()
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
+    if event.src_path != p():
+        raise AssertionError
 
     mkdir(p('a', 'b'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirCreatedEvent)
-    assert event.src_path == p('a', 'b')
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
+    if event.src_path != p('a', 'b'):
+        raise AssertionError
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirModifiedEvent)
-    assert event.src_path == p('a')
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
+    if event.src_path != p('a'):
+        raise AssertionError
 
     mv(p('a'), p('a2'))
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('a')
+    if event.src_path != p('a'):
+        raise AssertionError
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirModifiedEvent)
-    assert event.src_path == p()
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
+    if event.src_path != p():
+        raise AssertionError
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirModifiedEvent)
-    assert event.src_path == p()
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
+    if event.src_path != p():
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirMovedEvent)
-    assert event.src_path == p('a', 'b')
+    if not isinstance(event, DirMovedEvent):
+        raise AssertionError
+    if event.src_path != p('a', 'b'):
+        raise AssertionError
 
     if platform.is_bsd():
         event = event_queue.get(timeout=5)[0]
-        assert isinstance(event, DirModifiedEvent)
-        assert event.src_path == p()
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
+        if event.src_path != p():
+            raise AssertionError
 
     open(p('a2', 'b', 'c'), 'a').close()
 
@@ -399,16 +468,21 @@ def test_renaming_top_level_directory():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirModifiedEvent)) for e in events])
+    if not all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirModifiedEvent)) for e in events]):
+        raise AssertionError
 
     for event in events:
         if isinstance(event, FileCreatedEvent):
-            assert event.src_path == p('a2', 'b', 'c')
+            if event.src_path != p('a2', 'b', 'c'):
+                raise AssertionError
         elif isinstance(event, FileMovedEvent):
-            assert event.dest_path == p('a2', 'b', 'c')
-            assert event.src_path == p('a', 'b', 'c')
+            if event.dest_path != p('a2', 'b', 'c'):
+                raise AssertionError
+            if event.src_path != p('a', 'b', 'c'):
+                raise AssertionError
         elif isinstance(event, DirModifiedEvent):
-            assert event.src_path == p('a2', 'b')
+            if event.src_path != p('a2', 'b'):
+                raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -419,26 +493,36 @@ def test_renaming_top_level_directory_on_windows():
 
     mkdir(p('a'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirCreatedEvent)
-    assert event.src_path == p('a')
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
+    if event.src_path != p('a'):
+        raise AssertionError
 
     mkdir(p('a', 'b'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirCreatedEvent)
-    assert event.src_path == p('a', 'b')
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
+    if event.src_path != p('a', 'b'):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirCreatedEvent)
-    assert event.src_path == p('a', 'b')
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
+    if event.src_path != p('a', 'b'):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirModifiedEvent)
-    assert event.src_path == p('a')
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
+    if event.src_path != p('a'):
+        raise AssertionError
 
     mv(p('a'), p('a2'))
     event = event_queue.get(timeout=5)[0]
-    assert isinstance(event, DirMovedEvent)
-    assert event.src_path == p('a', 'b')
+    if not isinstance(event, DirMovedEvent):
+        raise AssertionError
+    if event.src_path != p('a', 'b'):
+        raise AssertionError
 
     open(p('a2', 'b', 'c'), 'a').close()
 
@@ -448,19 +532,26 @@ def test_renaming_top_level_directory_on_windows():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirMovedEvent, DirModifiedEvent)) for e in events])
+    if not all([isinstance(e, (FileCreatedEvent, FileMovedEvent, DirMovedEvent, DirModifiedEvent)) for e in events]):
+        raise AssertionError
 
     for event in events:
         if isinstance(event, FileCreatedEvent):
-            assert event.src_path == p('a2', 'b', 'c')
+            if event.src_path != p('a2', 'b', 'c'):
+                raise AssertionError
         elif isinstance(event, FileMovedEvent):
-            assert event.dest_path == p('a2', 'b', 'c')
-            assert event.src_path == p('a', 'b', 'c')
+            if event.dest_path != p('a2', 'b', 'c'):
+                raise AssertionError
+            if event.src_path != p('a', 'b', 'c'):
+                raise AssertionError
         elif isinstance(event, DirMovedEvent):
-            assert event.dest_path == p('a2')
-            assert event.src_path == p('a')
+            if event.dest_path != p('a2'):
+                raise AssertionError
+            if event.src_path != p('a'):
+                raise AssertionError
         elif isinstance(event, DirModifiedEvent):
-            assert event.src_path == p('a2', 'b')
+            if event.src_path != p('a2', 'b'):
+                raise AssertionError
 
 
 @pytest.mark.skipif(platform.is_windows(),
@@ -472,39 +563,55 @@ def test_move_nested_subdirectories():
     mv(p('dir1/dir2'), p('dir2'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1', 'dir2')
-    assert isinstance(event, DirMovedEvent)
+    if event.src_path != p('dir1', 'dir2'):
+        raise AssertionError
+    if not isinstance(event, DirMovedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1')
-    assert isinstance(event, DirModifiedEvent)
+    if event.src_path != p('dir1'):
+        raise AssertionError
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert p(event.src_path, '') == p('')
-    assert isinstance(event, DirModifiedEvent)
+    if p(event.src_path, '') != p(''):
+        raise AssertionError
+    if not isinstance(event, DirModifiedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1/dir2/dir3')
-    assert isinstance(event, DirMovedEvent)
+    if event.src_path != p('dir1/dir2/dir3'):
+        raise AssertionError
+    if not isinstance(event, DirMovedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1/dir2/dir3', 'a')
-    assert isinstance(event, FileMovedEvent)
+    if event.src_path != p('dir1/dir2/dir3', 'a'):
+        raise AssertionError
+    if not isinstance(event, FileMovedEvent):
+        raise AssertionError
 
     if platform.is_bsd():
         event = event_queue.get(timeout=5)[0]
-        assert p(event.src_path) == p()
-        assert isinstance(event, DirModifiedEvent)
+        if p(event.src_path) != p():
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
         event = event_queue.get(timeout=5)[0]
-        assert p(event.src_path) == p('dir1')
-        assert isinstance(event, DirModifiedEvent)
+        if p(event.src_path) != p('dir1'):
+            raise AssertionError
+        if not isinstance(event, DirModifiedEvent):
+            raise AssertionError
 
     touch(p('dir2/dir3', 'a'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir2/dir3', 'a')
-    assert isinstance(event, FileModifiedEvent)
+    if event.src_path != p('dir2/dir3', 'a'):
+        raise AssertionError
+    if not isinstance(event, FileModifiedEvent):
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1, rerun_filter=rerun_filter)
@@ -517,20 +624,28 @@ def test_move_nested_subdirectories_on_windows():
     mv(p('dir1/dir2'), p('dir2'))
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir1', 'dir2')
-    assert isinstance(event, FileDeletedEvent)
+    if event.src_path != p('dir1', 'dir2'):
+        raise AssertionError
+    if not isinstance(event, FileDeletedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir2')
-    assert isinstance(event, DirCreatedEvent)
+    if event.src_path != p('dir2'):
+        raise AssertionError
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir2', 'dir3')
-    assert isinstance(event, DirCreatedEvent)
+    if event.src_path != p('dir2', 'dir3'):
+        raise AssertionError
+    if not isinstance(event, DirCreatedEvent):
+        raise AssertionError
 
     event = event_queue.get(timeout=5)[0]
-    assert event.src_path == p('dir2', 'dir3', 'a')
-    assert isinstance(event, FileCreatedEvent)
+    if event.src_path != p('dir2', 'dir3', 'a'):
+        raise AssertionError
+    if not isinstance(event, FileCreatedEvent):
+        raise AssertionError
 
     touch(p('dir2/dir3', 'a'))
 
@@ -540,10 +655,13 @@ def test_move_nested_subdirectories_on_windows():
         if event_queue.empty():
             break
 
-    assert all([isinstance(e, (FileModifiedEvent, DirModifiedEvent)) for e in events])
+    if not all([isinstance(e, (FileModifiedEvent, DirModifiedEvent)) for e in events]):
+        raise AssertionError
 
     for event in events:
         if isinstance(event, FileModifiedEvent):
-            assert event.src_path == p('dir2', 'dir3', 'a')
+            if event.src_path != p('dir2', 'dir3', 'a'):
+                raise AssertionError
         elif isinstance(event, DirModifiedEvent):
-            assert event.src_path in [p('dir2'), p('dir2', 'dir3')]
+            if event.src_path not in [p('dir2'), p('dir2', 'dir3')]:
+                raise AssertionError

@@ -48,31 +48,37 @@ def test_schedule_should_start_emitter_if_running(observer):
     observer.start()
     observer.schedule(None, '')
     (emitter,) = observer.emitters
-    assert emitter.is_alive()
+    if not emitter.is_alive():
+        raise AssertionError
 
 
 def test_schedule_should_not_start_emitter_if_not_running(observer):
     observer.schedule(None, '')
     (emitter,) = observer.emitters
-    assert not emitter.is_alive()
+    if emitter.is_alive():
+        raise AssertionError
 
 
 def test_start_should_start_emitter(observer):
     observer.schedule(None, '')
     observer.start()
     (emitter,) = observer.emitters
-    assert emitter.is_alive()
+    if not emitter.is_alive():
+        raise AssertionError
 
 
 def test_stop_should_stop_emitter(observer):
     observer.schedule(None, '')
     observer.start()
     (emitter,) = observer.emitters
-    assert emitter.is_alive()
+    if not emitter.is_alive():
+        raise AssertionError
     observer.stop()
     observer.join()
-    assert not observer.is_alive()
-    assert not emitter.is_alive()
+    if observer.is_alive():
+        raise AssertionError
+    if emitter.is_alive():
+        raise AssertionError
 
 
 def test_unschedule_self(observer):
@@ -92,36 +98,45 @@ def test_unschedule_self(observer):
     (emitter,) = observer.emitters
     emitter.queue_event(FileModifiedEvent(''))
 
-    assert unschedule_finished.wait()
-    assert len(observer.emitters) == 0
+    if not unschedule_finished.wait():
+        raise AssertionError
+    if len(observer.emitters) != 0:
+        raise AssertionError
 
 
 def test_schedule_after_unschedule_all(observer):
     observer.start()
     observer.schedule(None, '')
-    assert len(observer.emitters) == 1
+    if len(observer.emitters) != 1:
+        raise AssertionError
 
     observer.unschedule_all()
-    assert len(observer.emitters) == 0
+    if len(observer.emitters) != 0:
+        raise AssertionError
 
     observer.schedule(None, '')
-    assert len(observer.emitters) == 1
+    if len(observer.emitters) != 1:
+        raise AssertionError
 
 
 def test_2_observers_on_the_same_path(observer, observer2):
-    assert observer is not observer2
+    if observer is observer2:
+        raise AssertionError
 
     observer.schedule(None, '')
-    assert len(observer.emitters) == 1
+    if len(observer.emitters) != 1:
+        raise AssertionError
 
     observer2.schedule(None, '')
-    assert len(observer2.emitters) == 1
+    if len(observer2.emitters) != 1:
+        raise AssertionError
 
 
 def test_start_failure_should_not_prevent_further_try(monkeypatch, observer):
     observer.schedule(None, '')
     emitters = observer.emitters
-    assert len(emitters) == 1
+    if len(emitters) != 1:
+        raise AssertionError
 
     # Make the emitter to fail on start()
 
@@ -133,13 +148,16 @@ def test_start_failure_should_not_prevent_further_try(monkeypatch, observer):
     with pytest.raises(OSError):
         observer.start()
     # The emitter should be removed from the list
-    assert len(observer.emitters) == 0
+    if len(observer.emitters) != 0:
+        raise AssertionError
 
     # Restoring the original behavior should work like there never be emitters
     monkeypatch.undo()
     observer.start()
-    assert len(observer.emitters) == 0
+    if len(observer.emitters) != 0:
+        raise AssertionError
 
     # Re-schduling the watch should work
     observer.schedule(None, '')
-    assert len(observer.emitters) == 1
+    if len(observer.emitters) != 1:
+        raise AssertionError

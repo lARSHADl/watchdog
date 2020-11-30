@@ -50,7 +50,8 @@ def assert_patterns(event):
         included_patterns=['*.py', '*.txt'],
         excluded_patterns=["*.pyc"],
         case_sensitive=False)
-    assert filtered_paths
+    if not filtered_paths:
+        raise AssertionError
 
 
 def test_dispatch():
@@ -117,7 +118,8 @@ def test_dispatch():
     all_events = all_file_events + all_dir_events
 
     def assert_check_directory(handler, event):
-        assert not (handler.ignore_directories and event.is_directory)
+        if (handler.ignore_directories and event.is_directory):
+            raise AssertionError
 
     class TestableEventHandler(PatternMatchingEventHandler):
 
@@ -126,22 +128,26 @@ def test_dispatch():
 
         def on_modified(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_MODIFIED
+            if event.event_type != EVENT_TYPE_MODIFIED:
+                raise AssertionError
             assert_patterns(event)
 
         def on_deleted(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_DELETED
+            if event.event_type != EVENT_TYPE_DELETED:
+                raise AssertionError
             assert_patterns(event)
 
         def on_moved(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_MOVED
+            if event.event_type != EVENT_TYPE_MOVED:
+                raise AssertionError
             assert_patterns(event)
 
         def on_created(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_CREATED
+            if event.event_type != EVENT_TYPE_CREATED:
+                raise AssertionError
             assert_patterns(event)
 
     no_dirs_handler = TestableEventHandler(patterns=patterns,
@@ -162,10 +168,14 @@ def test_handler():
                                            g_ignore_patterns, True)
     handler2 = PatternMatchingEventHandler(g_allowed_patterns,
                                            g_ignore_patterns, False)
-    assert handler1.patterns == g_allowed_patterns
-    assert handler1.ignore_patterns == g_ignore_patterns
-    assert handler1.ignore_directories
-    assert not handler2.ignore_directories
+    if handler1.patterns != g_allowed_patterns:
+        raise AssertionError
+    if handler1.ignore_patterns != g_ignore_patterns:
+        raise AssertionError
+    if not handler1.ignore_directories:
+        raise AssertionError
+    if handler2.ignore_directories:
+        raise AssertionError
 
 
 def test_ignore_directories():
@@ -173,17 +183,21 @@ def test_ignore_directories():
                                            g_ignore_patterns, True)
     handler2 = PatternMatchingEventHandler(g_allowed_patterns,
                                            g_ignore_patterns, False)
-    assert handler1.ignore_directories
-    assert not handler2.ignore_directories
+    if not handler1.ignore_directories:
+        raise AssertionError
+    if handler2.ignore_directories:
+        raise AssertionError
 
 
 def test_ignore_patterns():
     handler1 = PatternMatchingEventHandler(g_allowed_patterns,
                                            g_ignore_patterns, True)
-    assert handler1.ignore_patterns == g_ignore_patterns
+    if handler1.ignore_patterns != g_ignore_patterns:
+        raise AssertionError
 
 
 def test_patterns():
     handler1 = PatternMatchingEventHandler(g_allowed_patterns,
                                            g_ignore_patterns, True)
-    assert handler1.patterns == g_allowed_patterns
+    if handler1.patterns != g_allowed_patterns:
+        raise AssertionError

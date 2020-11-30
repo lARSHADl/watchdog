@@ -30,7 +30,8 @@ def no_thread_leaks():
     """
     yield
     gc.collect()  # Clear the stuff from other function-level fixtures
-    assert threading.active_count() == 1  # Only the main thread
+    if threading.active_count() != 1:
+        raise AssertionError
 
 
 @pytest.fixture(autouse=True)
@@ -51,4 +52,5 @@ def no_warnings(recwarn):
         ):
             continue
         warnings.append("{w.filename}:{w.lineno} {w.message}".format(w=warning))
-    assert not warnings
+    if warnings:
+        raise AssertionError

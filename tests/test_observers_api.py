@@ -36,10 +36,14 @@ def test_observer__eq__():
     watch_ne1 = ObservedWatch('/foo', True)
     watch_ne2 = ObservedWatch('/foobar', False)
 
-    assert watch1 == watch2
-    assert watch1.__eq__(watch2)
-    assert not watch1.__eq__(watch_ne1)
-    assert not watch1.__eq__(watch_ne2)
+    if watch1 != watch2:
+        raise AssertionError
+    if not watch1.__eq__(watch2):
+        raise AssertionError
+    if watch1.__eq__(watch_ne1):
+        raise AssertionError
+    if watch1.__eq__(watch_ne2):
+        raise AssertionError
 
 
 def test_observer__ne__():
@@ -48,16 +52,21 @@ def test_observer__ne__():
     watch_ne1 = ObservedWatch('/foo', True)
     watch_ne2 = ObservedWatch('/foobar', False)
 
-    assert not watch1.__ne__(watch2)
-    assert watch1.__ne__(watch_ne1)
-    assert watch1.__ne__(watch_ne2)
+    if watch1.__ne__(watch2):
+        raise AssertionError
+    if not watch1.__ne__(watch_ne1):
+        raise AssertionError
+    if not watch1.__ne__(watch_ne2):
+        raise AssertionError
 
 
 def test_observer__repr__():
     observed_watch = ObservedWatch('/foobar', True)
     repr_str = '<ObservedWatch: path=/foobar, is_recursive=True>'
-    assert observed_watch.__repr__() == repr(observed_watch)
-    assert repr(observed_watch) == repr_str
+    if observed_watch.__repr__() != repr(observed_watch):
+        raise AssertionError
+    if repr(observed_watch) != repr_str:
+        raise AssertionError
 
 
 def test_event_emitter():
@@ -74,7 +83,8 @@ def test_event_dispatcher():
     class TestableEventDispatcher(EventDispatcher):
 
         def dispatch_event(self, event, watch):
-            assert True
+            if not True:
+                raise AssertionError
 
     event_dispatcher = TestableEventDispatcher()
     event_dispatcher.event_queue.put((event, watch))

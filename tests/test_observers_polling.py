@@ -162,7 +162,8 @@ def test___init__(event_queue, emitter):
         except Empty:
             break
 
-    assert expected == got
+    if expected != got:
+        raise AssertionError
 
 
 def test_delete_watched_dir(event_queue, emitter):
@@ -191,4 +192,5 @@ def test_delete_watched_dir(event_queue, emitter):
         except Empty:
             break
 
-    assert expected == got
+    if expected != got:
+        raise AssertionError

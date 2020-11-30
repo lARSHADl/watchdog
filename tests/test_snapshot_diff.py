@@ -53,7 +53,8 @@ def test_move_to(p):
     ref = DirectorySnapshot(p('dir2'))
     mv(p('dir1', 'a'), p('dir2', 'b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('dir2')))
-    assert diff.files_created == [p('dir2', 'b')]
+    if diff.files_created != [p('dir2', 'b')]:
+        raise AssertionError
 
 
 def test_move_from(p):
@@ -63,7 +64,8 @@ def test_move_from(p):
     ref = DirectorySnapshot(p('dir1'))
     mv(p('dir1', 'a'), p('dir2', 'b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('dir1')))
-    assert diff.files_deleted == [p('dir1', 'a')]
+    if diff.files_deleted != [p('dir1', 'a')]:
+        raise AssertionError
 
 
 def test_move_internal(p):
@@ -73,9 +75,12 @@ def test_move_internal(p):
     ref = DirectorySnapshot(p(''))
     mv(p('dir1', 'a'), p('dir2', 'b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('')))
-    assert diff.files_moved == [(p('dir1', 'a'), p('dir2', 'b'))]
-    assert diff.files_created == []
-    assert diff.files_deleted == []
+    if diff.files_moved != [(p('dir1', 'a'), p('dir2', 'b'))]:
+        raise AssertionError
+    if diff.files_created != []:
+        raise AssertionError
+    if diff.files_deleted != []:
+        raise AssertionError
 
 
 def test_move_replace(p):
@@ -86,9 +91,12 @@ def test_move_replace(p):
     ref = DirectorySnapshot(p(''))
     mv(p('dir1', 'a'), p('dir2', 'b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('')))
-    assert diff.files_moved == [(p('dir1', 'a'), p('dir2', 'b'))]
-    assert diff.files_deleted == [p('dir2', 'b')]
-    assert diff.files_created == []
+    if diff.files_moved != [(p('dir1', 'a'), p('dir2', 'b'))]:
+        raise AssertionError
+    if diff.files_deleted != [p('dir2', 'b')]:
+        raise AssertionError
+    if diff.files_created != []:
+        raise AssertionError
 
 
 def test_dir_modify_on_create(p):
@@ -96,7 +104,8 @@ def test_dir_modify_on_create(p):
     wait()
     touch(p('a'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('')))
-    assert diff.dirs_modified == [p('')]
+    if diff.dirs_modified != [p('')]:
+        raise AssertionError
 
 
 def test_dir_modify_on_move(p):
@@ -107,7 +116,8 @@ def test_dir_modify_on_move(p):
     wait()
     mv(p('dir1', 'a'), p('dir2', 'b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('')))
-    assert set(diff.dirs_modified) == set([p('dir1'), p('dir2')])
+    if set(diff.dirs_modified) != set([p('dir1'), p('dir2')]):
+        raise AssertionError
 
 
 def test_detect_modify_for_moved_files(p):
@@ -117,8 +127,10 @@ def test_detect_modify_for_moved_files(p):
     touch(p('a'))
     mv(p('a'), p('b'))
     diff = DirectorySnapshotDiff(ref, DirectorySnapshot(p('')))
-    assert diff.files_moved == [(p('a'), p('b'))]
-    assert diff.files_modified == [p('a')]
+    if diff.files_moved != [(p('a'), p('b'))]:
+        raise AssertionError
+    if diff.files_modified != [p('a')]:
+        raise AssertionError
 
 
 def test_replace_dir_with_file(p):
@@ -163,10 +175,12 @@ def test_permission_error(monkeypatch, p):
     monkeypatch.undo()
 
     diff = DirectorySnapshotDiff(ref, new_snapshot)
-    assert repr(diff)
+    if not repr(diff):
+        raise AssertionError
 
     # Children of a/b/ are no more accessible and so removed in the new snapshot
-    assert diff.dirs_deleted == [(p('a', 'b', 'c'))]
+    if diff.dirs_deleted != [(p('a', 'b', 'c'))]:
+        raise AssertionError
 
 
 def test_ignore_device(monkeypatch, p):
@@ -192,15 +206,19 @@ def test_ignore_device(monkeypatch, p):
     # be different), it thinks that the same file has been deleted and created again.
     snapshot = DirectorySnapshot(p(''))
     diff_with_device = DirectorySnapshotDiff(ref, snapshot)
-    assert diff_with_device.files_deleted == [(p('file'))]
-    assert diff_with_device.files_created == [(p('file'))]
+    if diff_with_device.files_deleted != [(p('file'))]:
+        raise AssertionError
+    if diff_with_device.files_created != [(p('file'))]:
+        raise AssertionError
 
     # Otherwise, if we choose to ignore the device, the file will not be detected as
     # deleted and re-created.
     snapshot = DirectorySnapshot(p(''))
     diff_without_device = DirectorySnapshotDiff(ref, snapshot, ignore_device=True)
-    assert diff_without_device.files_deleted == []
-    assert diff_without_device.files_created == []
+    if diff_without_device.files_deleted != []:
+        raise AssertionError
+    if diff_without_device.files_created != []:
+        raise AssertionError
 
 
 def test_empty_snapshot(p):
@@ -215,5 +233,7 @@ def test_empty_snapshot(p):
     empty = EmptyDirectorySnapshot()
 
     diff = DirectorySnapshotDiff(empty, ref)
-    assert diff.files_created == [p('a')]
-    assert sorted(diff.dirs_created) == sorted([p(''), p('b'), p('b', 'c')])
+    if diff.files_created != [p('a')]:
+        raise AssertionError
+    if sorted(diff.dirs_created) != sorted([p(''), p('b'), p('b', 'c')]):
+        raise AssertionError

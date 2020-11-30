@@ -28,7 +28,8 @@ def test_delayed_get():
     q.get()
     elapsed = time() - inserted
     # 2.10 instead of 2.05 for slow macOS slaves on Travis
-    assert 2.10 > elapsed > 1.99
+    if 2.10 <= elapsed:
+        raise AssertionError
 
 
 @pytest.mark.flaky(max_runs=5, min_passes=1)
@@ -39,4 +40,5 @@ def test_nondelayed_get():
     q.get()
     elapsed = time() - inserted
     # Far less than 1 second
-    assert elapsed < 1
+    if elapsed >= 1:
+        raise AssertionError

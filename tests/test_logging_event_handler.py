@@ -39,23 +39,28 @@ path_2 = '/path/abc'
 class _TestableEventHandler(LoggingEventHandler):
 
     def on_any_event(self, event):
-        assert True
+        if not True:
+            raise AssertionError
 
     def on_modified(self, event):
         super(_TestableEventHandler, self).on_modified(event)
-        assert event.event_type == EVENT_TYPE_MODIFIED
+        if event.event_type != EVENT_TYPE_MODIFIED:
+            raise AssertionError
 
     def on_deleted(self, event):
         super(_TestableEventHandler, self).on_deleted(event)
-        assert event.event_type == EVENT_TYPE_DELETED
+        if event.event_type != EVENT_TYPE_DELETED:
+            raise AssertionError
 
     def on_moved(self, event):
         super(_TestableEventHandler, self).on_moved(event)
-        assert event.event_type == EVENT_TYPE_MOVED
+        if event.event_type != EVENT_TYPE_MOVED:
+            raise AssertionError
 
     def on_created(self, event):
         super(_TestableEventHandler, self).on_created(event)
-        assert event.event_type == EVENT_TYPE_CREATED
+        if event.event_type != EVENT_TYPE_CREATED:
+            raise AssertionError
 
 
 def test_logging_event_handler_dispatch():
