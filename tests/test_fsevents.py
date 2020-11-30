@@ -34,7 +34,8 @@ def teardown_function(function):
     emitter.stop()
     emitter.join(5)
     rm(p(""), recursive=True)
-    assert not emitter.is_alive()
+    if emitter.is_alive():
+        raise AssertionError
 
 
 def start_watching(path=None, use_full_emitter=False):

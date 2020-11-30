@@ -23,12 +23,18 @@ def test_load_config_valid(tmpdir):
         f.write('one: value\ntwo:\n- value1\n- value2\n')
 
     config = watchmedo.load_config(yaml_file)
-    assert isinstance(config, dict)
-    assert 'one' in config
-    assert 'two' in config
-    assert isinstance(config['two'], list)
-    assert config['one'] == 'value'
-    assert config['two'] == ['value1', 'value2']
+    if not isinstance(config, dict):
+        raise AssertionError
+    if 'one' not in config:
+        raise AssertionError
+    if 'two' not in config:
+        raise AssertionError
+    if not isinstance(config['two'], list):
+        raise AssertionError
+    if config['one'] != 'value':
+        raise AssertionError
+    if config['two'] != ['value1', 'value2']:
+        raise AssertionError
 
 
 def test_load_config_invalid(tmpdir):
@@ -48,4 +54,5 @@ def test_load_config_invalid(tmpdir):
     with pytest.raises((ConstructorError, ScannerError)):
         watchmedo.load_config(yaml_file)
 
-    assert not os.path.exists(critical_dir)
+    if os.path.exists(critical_dir):
+        raise AssertionError

@@ -48,7 +48,8 @@ def watching(path=None, use_full_emitter=False):
 def teardown_function(function):
     rm(p(''), recursive=True)
     try:
-        assert not emitter.is_alive()
+        if emitter.is_alive():
+            raise AssertionError
     except NameError:
         pass
 
@@ -117,15 +118,22 @@ def test_late_double_deletion(monkeypatch):
         # Watchdog Events
         for evt_cls in [DirCreatedEvent, DirDeletedEvent] * 2:
             event = event_queue.get(timeout=5)[0]
-            assert isinstance(event, evt_cls)
-            assert event.src_path == p('subdir1')
+            if not isinstance(event, evt_cls):
+                raise AssertionError
+            if event.src_path != p('subdir1'):
+                raise AssertionError
             event = event_queue.get(timeout=5)[0]
-            assert isinstance(event, DirModifiedEvent)
-            assert event.src_path == p('').rstrip(os.path.sep)
+            if not isinstance(event, DirModifiedEvent):
+                raise AssertionError
+            if event.src_path != p('').rstrip(os.path.sep):
+                raise AssertionError
 
-    assert inotify_fd.last == 3  # Number of directories
-    assert inotify_fd.buf == b""  # Didn't miss any event
-    assert inotify_fd.wds == [2, 3]  # Only 1 is removed explicitly
+    if inotify_fd.last != 3:
+        raise AssertionError
+    if inotify_fd.buf != b"":
+        raise AssertionError
+    if inotify_fd.wds != [2, 3]:
+        raise AssertionError
 
 
 def test_raise_error(monkeypatch):
@@ -134,26 +142,34 @@ def test_raise_error(monkeypatch):
     monkeypatch.setattr(ctypes, "get_errno", lambda: errno.ENOSPC)
     with pytest.raises(OSError) as exc:
         func()
-    assert exc.value.errno == errno.ENOSPC
-    assert "inotify watch limit reached" in str(exc.value)
+    if exc.value.errno != errno.ENOSPC:
+        raise AssertionError
+    if "inotify watch limit reached" not in str(exc.value):
+        raise AssertionError
 
     monkeypatch.setattr(ctypes, "get_errno", lambda: errno.EMFILE)
     with pytest.raises(OSError) as exc:
         func()
-    assert exc.value.errno == errno.EMFILE
-    assert "inotify instance limit reached" in str(exc.value)
+    if exc.value.errno != errno.EMFILE:
+        raise AssertionError
+    if "inotify instance limit reached" not in str(exc.value):
+        raise AssertionError
 
     monkeypatch.setattr(ctypes, "get_errno", lambda: errno.ENOENT)
     with pytest.raises(OSError) as exc:
         func()
-    assert exc.value.errno == errno.ENOENT
-    assert "No such file or directory" in str(exc.value)
+    if exc.value.errno != errno.ENOENT:
+        raise AssertionError
+    if "No such file or directory" not in str(exc.value):
+        raise AssertionError
 
     monkeypatch.setattr(ctypes, "get_errno", lambda: -1)
     with pytest.raises(OSError) as exc:
         func()
-    assert exc.value.errno == -1
-    assert "Unknown error -1" in str(exc.value)
+    if exc.value.errno != -1:
+        raise AssertionError
+    if "Unknown error -1" not in str(exc.value):
+        raise AssertionError
 
 
 def test_non_ascii_path():
@@ -164,7 +180,10 @@ def test_non_ascii_path():
     with watching(p('')):
         os.mkdir(path)
         event, _ = event_queue.get(timeout=5)
-        assert isinstance(event.src_path, type(u""))
-        assert event.src_path == path
+        if not isinstance(event.src_path, type(u"")):
+            raise AssertionError
+        if event.src_path != path:
+            raise AssertionError
         # Just make sure it doesn't raise an exception.
-        assert repr(event)
+        if not repr(event):
+            raise AssertionError

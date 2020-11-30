@@ -54,7 +54,8 @@ def test_dispatch():
         for p in paths:
             if any(r.match(p) for r in handler.regexes):
                 filtered_paths.add(p)
-        assert filtered_paths
+        if not filtered_paths:
+            raise AssertionError
 
     dir_del_event_match = DirDeletedEvent('/path/blah.py')
     dir_del_event_not_match = DirDeletedEvent('/path/foobar')
@@ -115,7 +116,8 @@ def test_dispatch():
     all_events = all_file_events + all_dir_events
 
     def assert_check_directory(handler, event):
-        assert not (handler.ignore_directories and event.is_directory)
+        if (handler.ignore_directories and event.is_directory):
+            raise AssertionError
 
     class TestableEventHandler(RegexMatchingEventHandler):
 
@@ -124,22 +126,26 @@ def test_dispatch():
 
         def on_modified(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_MODIFIED
+            if event.event_type != EVENT_TYPE_MODIFIED:
+                raise AssertionError
             assert_regexes(self, event)
 
         def on_deleted(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_DELETED
+            if event.event_type != EVENT_TYPE_DELETED:
+                raise AssertionError
             assert_regexes(self, event)
 
         def on_moved(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_MOVED
+            if event.event_type != EVENT_TYPE_MOVED:
+                raise AssertionError
             assert_regexes(self, event)
 
         def on_created(self, event):
             assert_check_directory(self, event)
-            assert event.event_type == EVENT_TYPE_CREATED
+            if event.event_type != EVENT_TYPE_CREATED:
+                raise AssertionError
             assert_regexes(self, event)
 
     no_dirs_handler = TestableEventHandler(regexes=regexes,
@@ -161,10 +167,14 @@ def test_handler():
                                          g_ignore_regexes, True)
     handler2 = RegexMatchingEventHandler(g_allowed_regexes,
                                          g_ignore_regexes, False)
-    assert [r.pattern for r in handler1.regexes] == g_allowed_regexes
-    assert [r.pattern for r in handler1.ignore_regexes] == g_ignore_regexes
-    assert handler1.ignore_directories
-    assert not handler2.ignore_directories
+    if [r.pattern for r in handler1.regexes] != g_allowed_regexes:
+        raise AssertionError
+    if [r.pattern for r in handler1.ignore_regexes] != g_ignore_regexes:
+        raise AssertionError
+    if not handler1.ignore_directories:
+        raise AssertionError
+    if handler2.ignore_directories:
+        raise AssertionError
 
 
 def test_ignore_directories():
@@ -172,20 +182,24 @@ def test_ignore_directories():
                                          g_ignore_regexes, True)
     handler2 = RegexMatchingEventHandler(g_allowed_regexes,
                                          g_ignore_regexes, False)
-    assert handler1.ignore_directories
-    assert not handler2.ignore_directories
+    if not handler1.ignore_directories:
+        raise AssertionError
+    if handler2.ignore_directories:
+        raise AssertionError
 
 
 def test_ignore_regexes():
     handler1 = RegexMatchingEventHandler(g_allowed_regexes,
                                          g_ignore_regexes, True)
-    assert [r.pattern for r in handler1.ignore_regexes] == g_ignore_regexes
+    if [r.pattern for r in handler1.ignore_regexes] != g_ignore_regexes:
+        raise AssertionError
 
 
 def test_regexes():
     handler1 = RegexMatchingEventHandler(g_allowed_regexes,
                                          g_ignore_regexes, True)
-    assert [r.pattern for r in handler1.regexes] == g_allowed_regexes
+    if [r.pattern for r in handler1.regexes] != g_allowed_regexes:
+        raise AssertionError
 
 
 def test_logging_event_handler_dispatch():
@@ -193,23 +207,28 @@ def test_logging_event_handler_dispatch():
     class _TestableEventHandler(LoggingEventHandler):
 
         def on_any_event(self, event):
-            assert True
+            if not True:
+                raise AssertionError
 
         def on_modified(self, event):
             super(_TestableEventHandler, self).on_modified(event)
-            assert event.event_type == EVENT_TYPE_MODIFIED
+            if event.event_type != EVENT_TYPE_MODIFIED:
+                raise AssertionError
 
         def on_deleted(self, event):
             super(_TestableEventHandler, self).on_deleted(event)
-            assert event.event_type == EVENT_TYPE_DELETED
+            if event.event_type != EVENT_TYPE_DELETED:
+                raise AssertionError
 
         def on_moved(self, event):
             super(_TestableEventHandler, self).on_moved(event)
-            assert event.event_type == EVENT_TYPE_MOVED
+            if event.event_type != EVENT_TYPE_MOVED:
+                raise AssertionError
 
         def on_created(self, event):
             super(_TestableEventHandler, self).on_created(event)
-            assert event.event_type == EVENT_TYPE_CREATED
+            if event.event_type != EVENT_TYPE_CREATED:
+                raise AssertionError
 
     # Utilities.
     dir_del_event = DirDeletedEvent('/path/blah.py')

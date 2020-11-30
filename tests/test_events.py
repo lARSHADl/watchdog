@@ -38,73 +38,106 @@ path_2 = '/path/abc'
 
 def test_file_deleted_event():
     event = FileDeletedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_DELETED == event.event_type
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_DELETED != event.event_type:
+        raise AssertionError
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_delete_event_is_directory():
     # Inherited properties.
     event = FileDeletedEvent(path_1)
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_modified_event():
     event = FileModifiedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_MODIFIED == event.event_type
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_MODIFIED != event.event_type:
+        raise AssertionError
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_modified_event_is_directory():
     # Inherited Properties
     event = FileModifiedEvent(path_1)
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_created_event():
     event = FileCreatedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_CREATED == event.event_type
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_CREATED != event.event_type:
+        raise AssertionError
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_moved_event():
     event = FileMovedEvent(path_1, path_2)
-    assert path_1 == event.src_path
-    assert path_2 == event.dest_path
-    assert EVENT_TYPE_MOVED == event.event_type
-    assert not event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if path_2 != event.dest_path:
+        raise AssertionError
+    if EVENT_TYPE_MOVED != event.event_type:
+        raise AssertionError
+    if event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_dir_deleted_event():
     event = DirDeletedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_DELETED == event.event_type
-    assert event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_DELETED != event.event_type:
+        raise AssertionError
+    if not event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_dir_modified_event():
     event = DirModifiedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_MODIFIED == event.event_type
-    assert event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_MODIFIED != event.event_type:
+        raise AssertionError
+    if not event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_dir_created_event():
     event = DirCreatedEvent(path_1)
-    assert path_1 == event.src_path
-    assert EVENT_TYPE_CREATED == event.event_type
-    assert event.is_directory
-    assert not event.is_synthetic
+    if path_1 != event.src_path:
+        raise AssertionError
+    if EVENT_TYPE_CREATED != event.event_type:
+        raise AssertionError
+    if not event.is_directory:
+        raise AssertionError
+    if event.is_synthetic:
+        raise AssertionError
 
 
 def test_file_system_event_handler_dispatch():
@@ -131,22 +164,28 @@ def test_file_system_event_handler_dispatch():
     class TestableEventHandler(FileSystemEventHandler):
 
         def on_any_event(self, event):
-            assert True
+            if not True:
+                raise AssertionError
 
         def on_modified(self, event):
-            assert event.event_type == EVENT_TYPE_MODIFIED
+            if event.event_type != EVENT_TYPE_MODIFIED:
+                raise AssertionError
 
         def on_deleted(self, event):
-            assert event.event_type == EVENT_TYPE_DELETED
+            if event.event_type != EVENT_TYPE_DELETED:
+                raise AssertionError
 
         def on_moved(self, event):
-            assert event.event_type == EVENT_TYPE_MOVED
+            if event.event_type != EVENT_TYPE_MOVED:
+                raise AssertionError
 
         def on_created(self, event):
-            assert event.event_type == EVENT_TYPE_CREATED
+            if event.event_type != EVENT_TYPE_CREATED:
+                raise AssertionError
 
     handler = TestableEventHandler()
 
     for event in all_events:
-        assert not event.is_synthetic
+        if event.is_synthetic:
+            raise AssertionError
         handler.dispatch(event)

@@ -33,10 +33,14 @@ def basic_actions():
     q.put(e2)
     q.put(e3)
 
-    assert e1 == q.get()
-    assert e2 == q.get()
-    assert e3 == q.get()
-    assert q.empty()
+    if e1 != q.get():
+        raise AssertionError
+    if e2 != q.get():
+        raise AssertionError
+    if e3 != q.get():
+        raise AssertionError
+    if not q.empty():
+        raise AssertionError
 
 
 def test_basic_queue():
@@ -53,10 +57,14 @@ def test_allow_nonconsecutive():
     q.put(e2)
     q.put(e1)       # repeat the first entry
 
-    assert e1 == q.get()
-    assert e2 == q.get()
-    assert e1 == q.get()
-    assert q.empty()
+    if e1 != q.get():
+        raise AssertionError
+    if e2 != q.get():
+        raise AssertionError
+    if e1 != q.get():
+        raise AssertionError
+    if not q.empty():
+        raise AssertionError
 
 
 def test_prevent_consecutive():
@@ -69,9 +77,12 @@ def test_prevent_consecutive():
     q.put(e1)  # repeat the first entry (this shouldn't get added)
     q.put(e2)
 
-    assert e1 == q.get()
-    assert e2 == q.get()
-    assert q.empty()
+    if e1 != q.get():
+        raise AssertionError
+    if e2 != q.get():
+        raise AssertionError
+    if not q.empty():
+        raise AssertionError
 
 
 def test_consecutives_allowed_across_empties():
@@ -82,12 +93,16 @@ def test_consecutives_allowed_across_empties():
     q.put(e1)
     q.put(e1)   # repeat the first entry (this shouldn't get added)
 
-    assert e1 == q.get()
-    assert q.empty()
+    if e1 != q.get():
+        raise AssertionError
+    if not q.empty():
+        raise AssertionError
 
     q.put(e1)  # this repeat is allowed because 'last' added is now gone from queue
-    assert e1 == q.get()
-    assert q.empty()
+    if e1 != q.get():
+        raise AssertionError
+    if not q.empty():
+        raise AssertionError
 
 
 @cpython_only

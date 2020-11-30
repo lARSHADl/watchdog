@@ -101,7 +101,8 @@ def test___init__(event_queue, emitter):
         else:
             got.add(event)
 
-    assert expected == got
+    if expected != got:
+        raise AssertionError
 
 
 def test_root_deleted(event_queue, emitter):
@@ -144,4 +145,5 @@ def test_root_deleted(event_queue, emitter):
     sleep(SLEEP_TIME)
 
     # The emitter is automatically stopped, with no error
-    assert not emitter.should_keep_running()
+    if emitter.should_keep_running():
+        raise AssertionError
